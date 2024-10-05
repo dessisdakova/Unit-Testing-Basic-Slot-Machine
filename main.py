@@ -1,4 +1,5 @@
 import random
+
 MAX_LINES = 5
 MIN_BET = 1
 MAX_BET = 100
@@ -65,26 +66,30 @@ def get_number_of_lines():
 def get_bet():
     while True:
         bet = input(f"How much would you like to bet on each line? (${MIN_BET} - ${MAX_BET}) : ")
-        if bet.isdigit():
+        try:
             bet = int(bet)
             if MIN_BET <= bet <= MAX_BET:
-                break
+                break;
             else:
                 print(f"Bet must be between ${MIN_BET} - ${MAX_BET}")
-        else:
+        except ValueError:
             print("Please enter a number.")
     return bet
 
 
-# generates a spin using rows, reels and symbol dict and returns a dictionary
-def generate_random_spin(rows, reels):
-    all_symbols = []
+def generate_symbols_in_reel():
+    symbols_per_reel = []
     # .items gives the key and the value associated with the dictionary
     for symbol, symbol_count in SYMBOLS_AND_COUNT.items():
         # adding the symbol to all_symbols list as many times as its count
         for _ in range(symbol_count):
-            all_symbols.append(symbol)
+            symbols_per_reel.append(symbol)
+    return symbols_per_reel
 
+
+# generates a spin using rows, reels and symbol dict and returns a dictionary
+def generate_random_spin(rows, reels):
+    all_symbols = generate_symbols_in_reel()
     # selecting what values are going to go in every single reel
     reels_dict = []
     # generating the reel
@@ -97,21 +102,24 @@ def generate_random_spin(rows, reels):
             reel.append(value)
 
         reels_dict.append(reel)
-
     return reels_dict
 
 
-# prints the generated spin using a dictionary
-def print_spin(reels):  # using transposing
-    for row in range(len(reels[0])):
-        for i, reel in enumerate(reels):  # gives the index and the value
-            if i != len(reels) - 1:
-                print(reel[row], end=" | ")
-            else:
-                print(reel[row])
+def convert_reels_to_rows(reels):
+    rows = []
+    # Loop through the rows of each reel (columns) and transpose them to rows
+    for row_idx in range(len(reels[0])):  # Assuming all reels have the same number of rows
+        row = [reels[reel_idx][row_idx] for reel_idx in range(len(reels))]
+        rows.append(row)
+    return rows
 
 
-def check_winning_combinations(current_spin, lines, bet):
+def print_spin(rows):
+    for row in rows:
+        print(" | ".join(row))
+
+
+def check_winning_combinations(transposed_spin, lines, bet):
     total_winnings = 0
     winning_lines = []
 
@@ -119,9 +127,9 @@ def check_winning_combinations(current_spin, lines, bet):
         # Get the positions for the current line from the WINNING_LINES dictionary
         positions = WINNING_LINES[line]
         # Check if all symbols in those positions are the same
-        first_symbol = current_spin[positions[0][1]][positions[0][0]]  # Get the first symbol
+        first_symbol = transposed_spin[positions[0][0]][positions[0][1]]  # Get the first symbol
         for (row, reel) in positions:
-            if current_spin[reel][row] != first_symbol:
+            if transposed_spin[row][reel] != first_symbol:
                 break
         else:
             # All symbols in this line match, it's a win
@@ -131,32 +139,41 @@ def check_winning_combinations(current_spin, lines, bet):
     return total_winnings, winning_lines
 
 
-# performs a spin using balance and returns winnings value
-def spin(balance):
-    current_lines = get_number_of_lines()
+def compare_total_bet_and_balance(balance):
+    lines = get_number_of_lines()
     while True:
-        current_bet = get_bet()
-        total_bet = current_lines * current_bet
+        bet = get_bet()
+        total_bet = lines * bet
 
         if total_bet > balance:
-            print(f"You don't have enough to bet that amount. Your current credit is ${balance}")
+            print(f"You don't have enough to bet that amount. Your current credit is ${balance}.")
         else:
             break
-    print(f"You are betting ${current_bet} on {current_lines} lines. Total bet is ${total_bet}")
+    print(f"You are betting ${bet} on {lines} lines. Total bet is ${total_bet}.")
+    return bet, lines, total_bet
 
-    spin_for_this_bet = generate_random_spin(ROWS, REELS)
-    print_spin(spin_for_this_bet)
-    current_winnings, current_winning_lines = check_winning_combinations(spin_for_this_bet, current_lines, current_bet)
-    print(f"You won ${current_winnings}.")
-    if current_winnings:
-        print(f"You won on lines :", *current_winning_lines)  # * - unpack operator
-    return current_winnings - total_bet
+
+# performs a spin using balance and returns winnings value
+def spin(balance):
+    bet, lines, total_bet = compare_total_bet_and_balance(balance)
+    spin_be_reels = generate_random_spin(ROWS, REELS)
+    transposed_spin = convert_reels_to_rows(spin_be_reels)
+    print_spin(transposed_spin)
+    winnings, winning_lines = check_winning_combinations(transposed_spin, lines, bet)
+    print_winnings(winnings, winning_lines)
+    return winnings - total_bet
+
+
+def print_winnings(winnings, winning_lines):
+    print(f"You won ${winnings}.")
+    if winnings:
+        print(f"You won on lines :", *winning_lines)  # * - unpack operator
 
 
 # runs the game
 def main():
     balance = deposit()
-    while balance != 0:
+    while balance > 0:
         print(f"Current balance is ${balance}.")
         answer = input("Press \"enter\" to spin or \"x\" to cash out : ")
         if answer == "x":
@@ -170,4 +187,3 @@ def main():
 # calling the main function to start the game
 if __name__ == "__main__":
     main()  # This will only run if the script is executed directly, not imported
-
