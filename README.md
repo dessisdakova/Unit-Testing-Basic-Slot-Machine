@@ -64,7 +64,7 @@ Orchestrates the flow of the slot machine game. It first prompts the user to dep
 ## Tech Stack
 *Language:* Python 3.11.3<br />
 *IDE:* PyCharm Community Edition 2021<br />
-*Testing Framework:*  Pytest<br />
+*Testing Framework:*  unittest<br />
 
 ## Test Cases
 
