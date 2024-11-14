@@ -1,7 +1,7 @@
 # Slot Machine Game Unit Testing in Python
 
 ## Project Overview
-This project implements a simple Slot Machine game in Python. The game allows users to deposit money,select lines and bet, spin the reels, and check for winning combinations. The winning lines and corresponding payouts are determined based on predefined symbols and their multipliers. The game ends when the balance gets to zero or the play chooses to cash out.
+This project implements a simple Slot Machine game in Python. The game allows users to deposit money,select lines and bet, spin the reels, and check for winning combinations. The winning lines and corresponding payouts are determined based on predefined symbols and their multipliers. The game ends when the balance gets to zero or the player chooses to cash out.
 
 ## Features
 - User-friendly interface for deposits and spins<br />
